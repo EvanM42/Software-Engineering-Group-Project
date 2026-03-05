@@ -1,9 +1,9 @@
 # Team roster
-Evan: Backend/Documentation
-Daniel: Frontend
-Alex: Backend
-Gopichand: Frontend/Testing
-Alan: Frontend
+- Evan: Backend/Documentation
+- Daniel: Frontend
+- Alex: Backend
+- Gopichand: Frontend/Testing
+- Alan: Frontend
 
 # 35-word project description
 "An app for UGA students to navigate campus with bus routes using 
