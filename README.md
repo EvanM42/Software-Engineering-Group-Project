@@ -21,6 +21,14 @@
 - Routing engine: Google Directions API
 - State management: Saved routes in local storage and/or database (supabase)
 
+## Data Sources
+- UGA campus transit data is available through a GTFS feed provided by their Passio transit system.
+- https://passio3.com/uga/passioTransit/gtfs/google_transit.zip
+- Includes, route info, stop locations, scheduling data
+
+- Mapping services via Google maps API
+- provides a map rendering, directions, distance and ETA calculations
+
 ## Group Members
 - Evan: Backend/Documentation
 - Daniel: Frontend
