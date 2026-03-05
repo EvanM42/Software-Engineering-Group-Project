@@ -16,6 +16,8 @@
     - in person or zoom
 - management tools
   - Version control tool: Github
+  - Backend management: Supabase
+  - Possible: Railway
 
 # Team strengths & weaknesses
 - strengths
