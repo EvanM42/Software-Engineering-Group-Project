@@ -1,6 +1,10 @@
 # Environment variables
 .env
 
+# Seed scripts
+seed_bus_stops.js
+# stops_data.json
+
 # Logs
 logs
 *.log
