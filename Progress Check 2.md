@@ -16,6 +16,7 @@
 - deployed the Github onto Railway using the keys for supabase and google maps
 - created an extremely bare minimum frontend
   - made this in order to allow me and Alex to work on the backend while the others work on the frontend
+- created bus_stops table and added routes from [uga.pass](https://uga.passiogo.com/)
 ### Alex
 ### Daniel
 ### Gopichand
@@ -28,6 +29,7 @@
 - I set up the Railway because it makes it easier to deploy and see the UI as the user would
 - I got the Google API because we need it to show the transportation
   - I did it well by making sure it just has the APIs we need and restricted its access to only what is necessary
+- I was able to add all the routes to the supabase table for bus_stops
 ### Alex
 ### Daniel
 ### Gopichand
