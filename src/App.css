@@ -19,11 +19,17 @@ body {
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+  background: #ffffff;
+  border-radius: 16px;
+
+  box-shadow: 
+    0 10px 30px rgba(0,0,0,0.12),
+    0 2px 6px rgba(0,0,0,0.08);
+
   overflow: hidden;
-  animation: slideUp 0.3s ease-out;
+
+  animation: slideUp 0.4s ease-out;
 }
 
 @keyframes slideUp {
@@ -40,32 +46,31 @@ body {
 .auth-header {
   background: #BA0C2F;
   color: #fff;
-  padding: 24px 16px;
-  text-align: center;
-  font-size: 28px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
+
+  padding: 18px 20px;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  text-align: left;
 }
 
 .auth-content {
-  padding: 32px 24px;
+  padding: 28px 24px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .auth-content h2 {
-  font-size: 24px;
-  color: #000;
-  margin: 0;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
 }
 
 .auth-subtitle {
   font-size: 14px;
-  color: #666;
-  margin: 0;
-  line-height: 1.4;
+  color: #6b7280;
 }
 
 .form-group {
@@ -82,21 +87,37 @@ body {
 
 .form-group input {
   padding: 12px 14px;
-  border: 1.5px solid #ddd;
-  border-radius: 8px;
+
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+
   font-size: 15px;
+  font-weight: 500;
+
+  background: #ffffff;   /* WHITE */
+  color: #111;           /* DARK TEXT */
+
   transition: all 0.2s ease;
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #BA0C2F;
-  box-shadow: 0 0 0 3px rgba(186, 12, 47, 0.1);
+/* placeholder text */
+.form-group input::placeholder {
+  color: #9ca3af;
 }
 
+/* focus state */
+.form-group input:focus {
+  outline: none;
+
+  border-color: #BA0C2F;
+
+  box-shadow: 0 0 0 3px rgba(186, 12, 47, 0.12);
+}
+
+/* disabled */
 .form-group input:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
+  background: #f3f4f6;
+  color: #9ca3af;
 }
 
 .error-message {
@@ -137,13 +158,21 @@ body {
 
 .auth-button.primary {
   background: #BA0C2F;
-  color: #fff;
+  color: white;
+
+  border-radius: 10px;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  transition: all 0.2s ease;
 }
 
 .auth-button.primary:hover:not(:disabled) {
   background: #950a25;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(186, 12, 47, 0.3);
+
+  box-shadow: 0 6px 16px rgba(186, 12, 47, 0.3);
 }
 
 .auth-button.primary:disabled {
@@ -153,8 +182,15 @@ body {
 
 .auth-button.secondary {
   background: transparent;
-  border: 2px solid #BA0C2F;
-  color: #BA0C2F;
+  border: 1.5px solid #e5e7eb;
+
+  color: #333;
+
+  border-radius: 10px;
+}
+
+.auth-button.secondary:hover {
+  background: #f8f9fb;
 }
 
 .auth-button.secondary:hover:not(:disabled) {
@@ -185,36 +221,38 @@ body {
 
 /* ========== MAIN APP ========== */
 .container {
-  max-width: 480px;
-  margin: 32px auto;
+  max-width: 520px;
+  margin: 60px auto;
   padding: 0 16px;
+
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 header {
   background: #BA0C2F;
   color: #fff;
-  padding: 14px 16px;
-  font-size: 20px;
+  padding: 16px 18px;
+  font-size: 22px;
   font-weight: bold;
-  border-radius: 8px;
+  border-radius: 10px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 h2 { font-size: 18px; margin-top: 8px; }
 
 input {
   width: 100%;
-  padding: 10px 14px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  padding: 12px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
   font-size: 15px;
-  transition: border-color 0.2s;
 }
 
 input:focus {
@@ -224,14 +262,13 @@ input:focus {
 
 button {
   width: 100%;
-  padding: 12px;
+  padding: 13px;
   background: #BA0C2F;
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s;
+  font-weight: 600;
 }
 
 button:hover:not(:disabled) {
@@ -286,13 +323,22 @@ hr { border: none; border-top: 1px solid #ddd; }
 
 .card {
   background: #fff;
-  border: 1px solid #e0e0e0;
-  border-left: 4px solid #BA0C2F;
-  border-radius: 10px;
-  padding: 12px 16px;
+  border-radius: 14px;
+  padding: 14px 16px;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
+
+  border-left: 5px solid #BA0C2F;
+
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+
+  transition: all 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
 }
 
 /* ========== MODAL ========== */
@@ -368,8 +414,15 @@ hr { border: none; border-top: 1px solid #ddd; }
   }
 
   .auth-content h2 {
-    font-size: 22px;
-  }
+  font-size: 22px;
+  font-weight: 700;
+  color: #111;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  color: #6b7280;
+}
 
   .auth-header {
     padding: 20px 16px;
@@ -384,4 +437,91 @@ hr { border: none; border-top: 1px solid #ddd; }
   .modal h3 {
     font-size: 18px;
   }
+}
+
+/* ========== NAVBAR ========== */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 12px 24px;
+  gap: 16px;
+
+  background: #BA0C2F;
+  color: white;
+
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+/* LEFT */
+.nav-left h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  white-space: nowrap;
+}
+
+/* CENTER */
+.nav-center {
+  flex: 1;
+  max-width: 500px;
+}
+
+.nav-center input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+
+  background: rgba(255,255,255,0.15);
+  color: white;
+  font-size: 14px;
+}
+
+.nav-center input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+/* RIGHT */
+.nav-right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* BUTTONS */
+.nav-right button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+
+  background: rgba(255,255,255,0.15);
+  color: white;
+
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.nav-right button:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* active */
+.nav-right button.active {
+  background: white;
+  color: #BA0C2F;
+}
+
+/* logout special */
+.nav-right button:last-child {
+  background: rgba(0,0,0,0.15);
 }

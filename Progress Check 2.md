@@ -19,6 +19,12 @@
 - created bus_stops table and added routes from [uga.pass](https://uga.passiogo.com/)
 ### Alex
 ### Daniel
+- Refactored authentication UI (Login & Signup pages) for improved usability and visual hierarchy
+- Redesigned form inputs to use a clean, white-based UI for better readability and accessibility
+- Improved spacing, typography, and component structure to create a more modern and professional interface
+- Implemented consistent styling across authentication components using shared CSS classes
+- Enhanced user experience with better feedback states (error handling, loading states, and form validation messaging)
+- Began restructuring frontend layout to support scalable components (Navbar, RouteCard, etc.)
 ### Gopichand
 ### Alan
 ## Q2.1: why/how done well
@@ -32,6 +38,11 @@
 - I was able to add all the routes to the supabase table for bus_stops
 ### Alex
 ### Daniel
+- Focused on improving user experience by simplifying the visual design and removing cluttered or outdated UI elements
+- Used consistent spacing, typography, and color hierarchy to make the interface more intuitive and easier to navigate
+- Designed components in a reusable way to support future features like navigation and route filtering
+- Prioritized readability and accessibility (clear inputs, better contrast, and user feedback messages)
+- Ensured frontend structure aligns with backend data flow (Supabase integration and route handling)
 ### Gopichand
 ### Alan 
 ## Q3: activities not accommplished or progress has fallen behind
