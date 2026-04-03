@@ -10,13 +10,13 @@
 
 ## Q2: accomplished so far
 ### Evan
-- set up the project with vite and npm
-- obtained the Google API
-- created the database in supabase
-- deployed the Github onto Railway using the keys for supabase and google maps
-- created an extremely bare minimum frontend
-  - made this in order to allow me and Alex to work on the backend while the others work on the frontend
-- created bus_stops table and added routes from [uga.pass](https://uga.passiogo.com/)
+- Set up the project with vite and npm
+- Obtained the Google API
+- Created the database in supabase
+- Deployed the Github onto Railway using the keys for supabase and google maps
+- Created an extremely bare minimum frontend
+  - Made this in order to allow me and Alex to work on the backend while the others work on the frontend
+- Created bus_stops table and added routes from [uga.pass](https://uga.passiogo.com/)
 ### Alex
 ### Daniel
 - Refactored authentication UI (Login & Signup pages) for improved usability and visual hierarchy
@@ -29,13 +29,13 @@
 ### Alan
 ## Q2.1: why/how done well
 ### Evan
-- I used vite and npm because I use it on my personal projects and I think it is a good starting place
+- Used vite and npm for project set up because I have found it useful on many project as a starting point
   - npm also makes launching a local host easier, granted it is not really necessary with Railway
-- I set up the Supabase DB so me and Alex can work on the backend and the frontend can ensure their work meshes with our
-- I set up the Railway because it makes it easier to deploy and see the UI as the user would
-- I got the Google API because we need it to show the transportation
-  - I did it well by making sure it just has the APIs we need and restricted its access to only what is necessary
-- I was able to add all the routes to the supabase table for bus_stops
+- Set up the Supabase DB so we can create the backend promptly and in line with the frontend
+- Set up the Railway to deploy the project when complete
+- Got the Google API because we need it to show the transportation
+  - Made sure it just has the APIs we need and restricted its access to only what is necessary
+- Added all the routes to the supabase table for bus_stops
 ### Alex
 ### Daniel
 - Focused on improving user experience by simplifying the visual design and removing cluttered or outdated UI elements
