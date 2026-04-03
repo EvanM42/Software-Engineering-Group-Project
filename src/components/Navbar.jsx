@@ -15,21 +15,13 @@ export default function Navbar({ onSearch, onViewChange, currentView, onLogout }
         <h2>UGA Transit</h2>
       </div>
 
-      <div className="nav-center">
-        <input
-          type="text"
-          placeholder="Search routes..."
-          value={query}
-          onChange={handleSearch}
-        />
-      </div>
-
       <div className="nav-right">
+
         <button
-          className={currentView === "find" ? "active" : ""}
-          onClick={() => onViewChange("find")}
+          className={currentView === "stops" ? "active" : ""}
+          onClick={() => onViewChange("stops")}
         >
-          Find
+          Stops
         </button>
 
         <button

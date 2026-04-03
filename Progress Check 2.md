@@ -26,6 +26,11 @@
 - Enhanced user experience with better feedback states (error handling, loading states, and form validation messaging)
 - Began restructuring frontend layout to support scalable components (Navbar, RouteCard, etc.)
 ### Gopichand
+- Set up Supabase authentication securely and developed fully functional Login and Signup pages.
+- Refactored the application into a clean, modular route-based structure using React Router.
+- Integrated the Google Maps API featuring modern `AdvancedMarkerElement`s to visualize UGA bus stops.
+- Built intelligent React components, including an interactive autocomplete location search and Nearby Stops locator.
+- Established an extensive automated testing suite using Vitest (80 passing tests out of 12 suites) for all new layers.
 ### Alan
 ## Q2.1: why/how done well
 ### Evan
@@ -44,6 +49,11 @@
 - Prioritized readability and accessibility (clear inputs, better contrast, and user feedback messages)
 - Ensured frontend structure aligns with backend data flow (Supabase integration and route handling)
 ### Gopichand
+- Secured the framework by adopting Test-Driven Development (TDD) via Vitest and the React Testing Library.
+- Optimized user experience by combining clean UI refactoring with seamless interactive map visualizations without disrupting the interface.
+- Wrote maintainable code by abstracting backend data fetching into scalable, custom React hooks (like `useBusStops`).
+- Protected application longevity by migrating deprecated APIs to the newest Google Maps DOM marker recommendations.
+- Included comprehensive client-side error handling to gracefully manage absent database tables and location hardware.
 ### Alan 
 ## Q3: activities not accommplished or progress has fallen behind
 - currently nothing, we are on track

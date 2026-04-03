@@ -1,12 +1,19 @@
 import { useState } from 'react'
+import { Link, Navigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
-export default function Signup({ onSwitch, onSignup }) {
+export default function Signup() {
+  const { signup, session, loading: authLoading } = useAuth()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [loading, setLoading] = useState(false)
+
+  if (authLoading) return null
+  if (session) return <Navigate to="/" replace />
 
   async function handleSignup() {
     if (!email || !password || !confirmPassword) {
@@ -28,7 +35,7 @@ export default function Signup({ onSwitch, onSignup }) {
     setError('')
     setSuccess('')
 
-    const result = await onSignup(email, password)
+    const result = await signup(email, password)
     if (result.error) {
       setError(result.error)
     } else {
@@ -40,7 +47,7 @@ export default function Signup({ onSwitch, onSignup }) {
     setLoading(false)
   }
 
-  function handleKeyPress(e) {
+  function handleKeyDown(e) {
     if (e.key === 'Enter') handleSignup()
   }
 
@@ -84,7 +91,7 @@ export default function Signup({ onSwitch, onSignup }) {
               placeholder="Re-enter your password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               disabled={loading}
             />
           </div>
@@ -104,13 +111,9 @@ export default function Signup({ onSwitch, onSignup }) {
             <span>Already have an account?</span>
           </div>
 
-          <button
-            onClick={() => onSwitch('login')}
-            disabled={loading}
-            className="auth-button secondary"
-          >
+          <Link to="/login" className="auth-button secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>
             Log In
-          </button>
+          </Link>
 
           <p className="auth-footer">
             By signing up, you agree to our Terms of Service

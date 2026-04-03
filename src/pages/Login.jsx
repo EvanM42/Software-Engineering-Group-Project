@@ -1,10 +1,18 @@
 import { useState } from 'react'
+import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { useAuth } from '../contexts/AuthContext'
 
-export default function Login({ onSwitch, onLogin }) {
+export default function Login() {
+  const { login, session, loading: authLoading } = useAuth()
+  const navigate = useNavigate()
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  if (authLoading) return null
+  if (session) return <Navigate to="/" replace />
 
   async function handleLogin() {
     if (!email || !password) {
@@ -13,14 +21,16 @@ export default function Login({ onSwitch, onLogin }) {
     }
     setLoading(true)
     setError('')
-    const result = await onLogin(email, password)
+    const result = await login(email, password)
     if (result.error) {
       setError(result.error)
+      setLoading(false)
+    } else {
+      navigate('/')
     }
-    setLoading(false)
   }
 
-  function handleKeyPress(e) {
+  function handleKeyDown(e) {
     if (e.key === 'Enter') handleLogin()
   }
 
@@ -33,27 +43,27 @@ export default function Login({ onSwitch, onLogin }) {
           <p className="auth-subtitle">Log in to save and manage your routes</p>
 
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="login-email">Email</label>
             <input
-              id="email"
+              id="login-email"
               type="email"
               placeholder="you@uga.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               disabled={loading}
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="login-password">Password</label>
             <input
-              id="password"
+              id="login-password"
               type="password"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               disabled={loading}
             />
           </div>
@@ -72,13 +82,9 @@ export default function Login({ onSwitch, onLogin }) {
             <span>New to UGA Transit?</span>
           </div>
 
-          <button
-            onClick={() => onSwitch('signup')}
-            disabled={loading}
-            className="auth-button secondary"
-          >
+          <Link to="/signup" className="auth-button secondary" style={{ textAlign: 'center', textDecoration: 'none' }}>
             Create an Account
-          </button>
+          </Link>
 
           <p className="auth-footer">
             Need help? Contact UGA Transit support
