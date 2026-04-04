@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from './supabaseClient'
 import './App.css'
 
@@ -16,9 +16,19 @@ function App() {
     supabase.auth.onAuthStateChange((_event, session) => setSession(session))
   }, [])
 
+  const loadRoutes = useCallback(async () => {
+    if (!session) return
+    const { data, error } = await supabase
+      .from('saved_routes')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+    if (!error) setRoutes(data)
+  }, [session])
+
   useEffect(() => {
     if (session) loadRoutes()
-  }, [session])
+  }, [session, loadRoutes])
 
   async function login() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -50,15 +60,6 @@ function App() {
   async function deleteRoute(id) {
     await supabase.from('saved_routes').delete().eq('id', id)
     loadRoutes()
-  }
-
-  async function loadRoutes() {
-    const { data, error } = await supabase
-      .from('saved_routes')
-      .select('*')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false })
-    if (!error) setRoutes(data)
   }
 
   if (!session) return (

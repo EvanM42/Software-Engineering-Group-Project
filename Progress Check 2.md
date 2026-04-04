@@ -17,6 +17,14 @@
 - created an extremely bare minimum frontend
   - made this in order to allow me and Alex to work on the backend while the others work on the frontend
 ### Alex
+- built the Google Directions API service to fetch transit and walking routes between locations
+- built the UGA bus real-time data service that parses GTFS-RT protobuf feeds from Passio for live bus positions and arrival predictions
+- created a central config module so all API keys and URLs are managed in one place instead of scattered across files
+- created a .env.example template so teammates can set up their environment quickly
+- updated supabaseClient.js to pull credentials from the central config
+- set up Vite dev server proxies for the Google Directions API and Passio GTFS-RT feeds to keep API keys out of the browser
+- updated .gitignore to cover additional .env file
+- downgraded Vite from v8 to v5 to fix a Node.js compatibility issue that was breaking my builds
 ### Daniel
 ### Gopichand
 ### Alan
@@ -29,6 +37,10 @@
 - I got the Google API because we need it to show the transportation
   - I did it well by making sure it just has the APIs we need and restricted its access to only what is necessary
 ### Alex
+- I set up thethe Directions API service handles both transit and walking modes in parallel so if one fails the other still returns something
+- The bus data from GTFS-RT is presented a binary and not JSON so I have the bus data service decoding raw protobuf binary feeds
+- I centralized all environment variables into a single config file with missing key warnings during development so people have an easy time adding any API keys we may need
+- the Vite proxy setup keeps the Google API key off the client side during development which is better practice for security
 ### Daniel
 ### Gopichand
 ### Alan 
