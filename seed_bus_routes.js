@@ -7,8 +7,8 @@
 import { createClient } from '@supabase/supabase-js'
 import { existsSync, readFileSync } from 'fs'
 
-const SUPABASE_URL = 'https://wnvegqarxreguiwearrj.supabase.co'
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndudmVncWFyeHJlZ3Vpd2VhcnJqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDk3ODI5MCwiZXhwIjoyMDkwNTU0MjkwfQ.YmeIrI_lAsE4vIudRgIIPSh7KLJrfopt0G_p-aCnhYA'
+const SUPABASE_URL = 
+const SUPABASE_SERVICE_KEY = 
 
 const ROUTES_TABLE = 'routes'
 const DATA_FILE = process.argv[2] || './routes_data.json'
