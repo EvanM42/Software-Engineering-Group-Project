@@ -1,16 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabaseClient'
 
 export function useBusStops() {
+  // stop list state for the app
   const [stops, setStops] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    fetchStops()
-  }, [])
-
-  async function fetchStops() {
+  const fetchStops = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -27,14 +24,20 @@ export function useBusStops() {
     }
 
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      fetchStops()
+    }, 0)
+
+    return () => window.clearTimeout(timer)
+  }, [fetchStops])
 
   return { stops, loading, error, refetch: fetchStops }
 }
 
-/**
- * Get the N nearest stops to a given lat/lng
- */
+// get the nearest stops to the current location
 export function getNearbyStops(stops, lat, lng, count = 5) {
   if (!stops.length || lat == null || lng == null) return []
 
@@ -47,9 +50,7 @@ export function getNearbyStops(stops, lat, lng, count = 5) {
     .slice(0, count)
 }
 
-/**
- * Haversine distance in km
- */
+// calculate distance in kilometers
 function getDistanceKm(lat1, lng1, lat2, lng2) {
   const R = 6371
   const dLat = toRad(lat2 - lat1)

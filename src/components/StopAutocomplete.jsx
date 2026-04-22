@@ -1,45 +1,75 @@
-import { useState, useRef, useEffect } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
+import { getRouteBadgeStyle } from '../utils/routeStyles'
 
 export default function StopAutocomplete({
   stops,
+  nearbyStops = [],
   value,
   onChange,
   onSelect,
   placeholder,
   id,
+  routeStyleMap,
 }) {
   const [query, setQuery] = useState(value || '')
   const [isOpen, setIsOpen] = useState(false)
   const [highlightIndex, setHighlightIndex] = useState(-1)
   const wrapperRef = useRef(null)
 
-  const filtered = query.trim()
-    ? stops.filter((s) =>
-        s.name.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 8)
-    : []
+  // keep the dropdown grouped by nearby and full stop results
+  const normalizedQuery = query.trim().toLowerCase()
 
-  // Sync external value changes
+  const dropdownSections = useMemo(() => {
+    const allStops = [...stops].sort((left, right) => left.name.localeCompare(right.name))
+
+    if (!normalizedQuery) {
+      const nearby = nearbyStops.slice(0, 5)
+      const nearbyIds = new Set(nearby.map((stop) => stop.id))
+      const remainingStops = allStops.filter((stop) => !nearbyIds.has(stop.id))
+
+      return [
+        ...(nearby.length ? [{ label: 'Nearby stops', items: nearby }] : []),
+        { label: 'All stops', items: remainingStops },
+      ].filter((section) => section.items.length)
+    }
+
+    const matches = allStops.filter((stop) =>
+      stop.name.toLowerCase().includes(normalizedQuery) ||
+      (stop.route_names || []).some((route) => route.toLowerCase().includes(normalizedQuery))
+    )
+
+    return matches.length ? [{ label: 'Matching stops', items: matches }] : []
+  }, [stops, nearbyStops, normalizedQuery])
+
+  const flattenedOptions = useMemo(
+    () => dropdownSections.flatMap((section) => section.items),
+    [dropdownSections]
+  )
+
   useEffect(() => {
-    setQuery(value || '')
+    const timer = window.setTimeout(() => {
+      setQuery(value || '')
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [value])
 
-  // Close dropdown on outside click
   useEffect(() => {
-    function handleClickOutside(e) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setIsOpen(false)
       }
     }
+
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  function handleChange(e) {
-    const val = e.target.value
-    setQuery(val)
-    onChange?.(val)
-    setIsOpen(val.trim().length > 0)
+  function handleChange(event) {
+    const nextValue = event.target.value
+    setQuery(nextValue)
+    onChange?.(nextValue)
+    setIsOpen(true)
     setHighlightIndex(-1)
   }
 
@@ -51,26 +81,24 @@ export default function StopAutocomplete({
     setHighlightIndex(-1)
   }
 
-  function handleKeyDown(e) {
-    if (!isOpen || filtered.length === 0) return
+  function handleKeyDown(event) {
+    if (!isOpen || flattenedOptions.length === 0) return
 
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHighlightIndex((prev) =>
-        prev < filtered.length - 1 ? prev + 1 : 0
-      )
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlightIndex((prev) =>
-        prev > 0 ? prev - 1 : filtered.length - 1
-      )
-    } else if (e.key === 'Enter' && highlightIndex >= 0) {
-      e.preventDefault()
-      handleSelect(filtered[highlightIndex])
-    } else if (e.key === 'Escape') {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setHighlightIndex((previous) => (previous < flattenedOptions.length - 1 ? previous + 1 : 0))
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setHighlightIndex((previous) => (previous > 0 ? previous - 1 : flattenedOptions.length - 1))
+    } else if (event.key === 'Enter' && highlightIndex >= 0) {
+      event.preventDefault()
+      handleSelect(flattenedOptions[highlightIndex])
+    } else if (event.key === 'Escape') {
       setIsOpen(false)
     }
   }
+
+  let optionIndex = -1
 
   return (
     <div className="autocomplete-wrapper" ref={wrapperRef}>
@@ -81,35 +109,57 @@ export default function StopAutocomplete({
         value={query}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        onFocus={() => query.trim() && setIsOpen(true)}
+        onFocus={() => setIsOpen(true)}
         autoComplete="off"
       />
 
-      {isOpen && filtered.length > 0 && (
-        <ul className="autocomplete-dropdown" role="listbox">
-          {filtered.map((stop, i) => (
-            <li
-              key={stop.id}
-              role="option"
-              aria-selected={i === highlightIndex}
-              className={`autocomplete-item ${
-                i === highlightIndex ? 'autocomplete-item--active' : ''
-              }`}
-              onClick={() => handleSelect(stop)}
-              onMouseEnter={() => setHighlightIndex(i)}
-            >
-              <span className="autocomplete-item-icon">📍</span>
-              <div className="autocomplete-item-content">
-                <span className="autocomplete-item-name">{stop.name}</span>
-                {stop.route_names?.length > 0 && (
-                  <span className="autocomplete-item-routes">
-                    {stop.route_names.slice(0, 3).join(' • ')}
-                  </span>
-                )}
+      {isOpen && (
+        <div className="autocomplete-dropdown" role="listbox">
+          {dropdownSections.length > 0 ? (
+            dropdownSections.map((section) => (
+              <div key={section.label} className="autocomplete-section">
+                <div className="autocomplete-section__label">{section.label}</div>
+                <ul className="autocomplete-section__list">
+                  {section.items.map((stop) => {
+                    optionIndex += 1
+                    const isActive = optionIndex === highlightIndex
+
+                    return (
+                      <li
+                        key={stop.id}
+                        role="option"
+                        aria-selected={isActive}
+                        className={`autocomplete-item ${isActive ? 'autocomplete-item--active' : ''}`}
+                        onClick={() => handleSelect(stop)}
+                        onMouseEnter={() => setHighlightIndex(optionIndex)}
+                      >
+                        <span className="autocomplete-item-icon" aria-hidden="true" />
+                        <div className="autocomplete-item-content">
+                          <span className="autocomplete-item-name">{stop.name}</span>
+                          {stop.route_names?.length > 0 && (
+                            <div className="autocomplete-item-routes">
+                              {stop.route_names.slice(0, 4).map((route) => (
+                                <span
+                                  key={route}
+                                  className="route-badge route-badge--tiny"
+                                  style={getRouteBadgeStyle(route, routeStyleMap)}
+                                >
+                                  {route}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
               </div>
-            </li>
-          ))}
-        </ul>
+            ))
+          ) : (
+            <div className="autocomplete-empty">No stops match that search yet.</div>
+          )}
+        </div>
       )}
     </div>
   )

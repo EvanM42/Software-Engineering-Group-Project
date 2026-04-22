@@ -1,32 +1,32 @@
-import { useState } from "react";
+import { useNavigate } from 'react-router-dom'
 
-export default function Navbar({ onSearch, onViewChange, currentView, onLogout }) {
-  const [query, setQuery] = useState("");
+export default function Navbar({ onViewChange, currentView, onLogout, onHomeClick }) {
+  const navigate = useNavigate()
 
-  function handleSearch(e) {
-    const value = e.target.value;
-    setQuery(value);
-    onSearch(value);
+  function handleHomeClick() {
+    onHomeClick?.()
+    navigate('/')
   }
 
   return (
     <nav className="navbar">
       <div className="nav-left">
-        <h2>UGA Transit</h2>
+        <button className="nav-brand" onClick={handleHomeClick}>
+          UGA Transit
+        </button>
       </div>
 
       <div className="nav-right">
-
         <button
-          className={currentView === "stops" ? "active" : ""}
-          onClick={() => onViewChange("stops")}
+          className={currentView === 'stops' ? 'active' : ''}
+          onClick={() => onViewChange('stops')}
         >
           Stops
         </button>
 
         <button
-          className={currentView === "saved" ? "active" : ""}
-          onClick={() => onViewChange("saved")}
+          className={currentView === 'saved' ? 'active' : ''}
+          onClick={() => onViewChange('saved')}
         >
           Saved
         </button>
@@ -34,5 +34,5 @@ export default function Navbar({ onSearch, onViewChange, currentView, onLogout }
         <button onClick={onLogout}>Logout</button>
       </div>
     </nav>
-  );
+  )
 }
