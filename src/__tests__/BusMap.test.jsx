@@ -6,11 +6,12 @@ const mockUseJsApiLoader = vi.fn()
 
 vi.mock('@react-google-maps/api', () => ({
   useJsApiLoader: (...args) => mockUseJsApiLoader(...args),
-  GoogleMap: ({ children, onLoad }) => {
+  GoogleMap: ({ children }) => {
     // Simulate calling onLoad (but with no real map)
     return <div data-testid="google-map">{children}</div>
   },
   InfoWindow: ({ children }) => <div data-testid="info-window">{children}</div>,
+  Polyline: () => <div data-testid="polyline" />,
 }))
 
 import BusMap from '../components/BusMap'
