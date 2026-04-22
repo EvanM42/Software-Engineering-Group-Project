@@ -17,7 +17,7 @@ To run or modify the project locally, you will need:
 - Access to the Supabase project for authentication and database tables
 - Access to the Railway project if you are using Railway for deployment
 - Access to the Google Maps API key (this can be found in Railway)
-- Internet access to the UGA Passio transit data feed (This is a variable in Railway)
+- Internet access to the Google Maps APIs used by the app
 
 ## Installation
 
@@ -48,14 +48,13 @@ Your `.env` should contain:
 - VITE_SUPABASE_URL
 - VITE_SUPABASE_ANON_KEY
 - VITE_GOOGLE_MAPS_API_KEY
-- VITE_PASSIO_BASE_URL
-NOTE: all of these are in Raiway and can be found there
+NOTE: all of these are in Railway and can be found there
 
 ## Database setup
 
 the app uses Supabase tables to extract data for bus stops and routes and user specific data
 - `bus_stops` -> table for bus stops with RLS
-- `bus_routes` -> table for bus routes with RLS
+- `routes` or `bus_routes` -> table for bus routes with RLS
 - `saved_routes` -> shows saved routes specific to user
 
 Row-level security (RLS) is enabled, policies must allow:
@@ -78,18 +77,31 @@ To check the project locally, run:
 
 # Tech Considerations
 
-- Data source: UGA bus system API (check for GTFS / GTFS-RT feed availability)
+- Data source: Google Maps Directions API transit responses
 - Mapping: Google Maps API
 - Routing engine: Google Directions API
 - State management: Saved routes in local storage and/or database (supabase)
 
 ## Data Sources
 
-- UGA campus transit data is available through a GTFS feed provided by their Passio transit system.
-- https://passio3.com/uga/passioTransit/gtfs/google_transit.zip
-- Includes, route info, stop locations, scheduling data
-- Mapping services via Google maps API
-- provides a map rendering, directions, distance and ETA calculations
+- Google Maps Directions API is the primary routing source for this project.
+- The app uses Google transit directions to draw route overlays on the map.
+- Google also provides the scheduled departure and arrival times shown for each transit leg.
+- Static stop and route metadata are still stored in Supabase for search and saved-route workflows.
+
+## Passio / GTFS Issue Log
+
+- Passio GTFS-RT proved unreliable for this project in practice.
+- The team repeatedly hit feed parsing and compatibility issues, including protobuf decode failures and route data mismatches.
+- Because the product requirement is a dependable student-facing route planner, we shifted away from Passio live-feed dependence and standardized on Google Maps transit directions.
+- GTFS remains useful as a reference dataset, but it is no longer the primary runtime source for map visualization or arrival times.
+
+## Methodology
+
+- We prioritized the source that produced the most consistent rider experience inside the app.
+- Google Maps already powers the route search, step-by-step transit legs, and scheduled stop times, so using it as the single runtime source removes conflicting data paths.
+- This reduces maintenance overhead, avoids duplicated transit logic, and keeps the route visualization tied directly to the same API response that powers the written directions.
+- Saved routes now reopen by re-running the Google transit search for the saved origin and destination, ensuring the map path and timing details stay in sync.
 
 ## Group Members
 
@@ -132,8 +144,6 @@ You can find the keys in Railway.
 | `VITE_SUPABASE_URL` | Yes | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Yes | Supabase anonymous/public key |
 | `VITE_GOOGLE_MAPS_API_KEY` | Yes | Google Maps API key (enable Directions API in Cloud Console) |
-| `VITE_PASSIO_BASE_URL` | No | Passio transit base URL (defaults to UGA's endpoint) |
-
 If any required keys are missing during development, the console will warn you.
 
 ## New Files
@@ -149,15 +159,6 @@ Google Directions API integration. Provides:
 
 Routes include distance, duration, step-by-step instructions, and transit details (bus line, stops, departure times).
 
-### `src/services/busService.js`
-UGA Passio GTFS-RT real-time bus data parser. Decodes protobufjs feeds and provides:
-
-- `getVehiclePositions()` — current lat/lng, speed, bearing, and route for each active bus
-- `getTripUpdates()` — predicted arrival/departure times for active trips
-- `getArrivalsForStop(stopId)` — next buses arriving at a specific stop, sorted by time
-- `getBusesOnRoute(routeId)` — all active buses on a given route
-- `getBusSystemStatus()` — positions and predictions fetched in parallel
-
 ### `.env.example`
 Template file showing all required environment variables with placeholder values.
 
@@ -172,11 +173,9 @@ Added dev server proxies so API calls avoid CORS and keep keys out of the browse
 | Local path | Proxied to |
 |------------|-----------|
 | `/api/directions` | `https://maps.googleapis.com/maps/api/directions/json` |
-| `/passio-api/*` | `https://passio3.com/uga/passioTransit/*` |
 
 ### `.gitignore`
 Updated to cover `.env.local` and `.env.*.local` while keeping `.env.example` tracked.
 
 ### `package.json`
-- Added `protobufjs` dependency (for GTFS-RT protobuf decoding)
 - Vite downgraded from v8 to v5 (fixes compatibility with Node.js 22.3)
