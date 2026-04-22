@@ -71,6 +71,9 @@ function formatStep(rawStep) {
     distance: rawStep.distance.text,
     duration: rawStep.duration.text,
     travelMode: rawStep.travel_mode,
+    polyline: rawStep.polyline?.points || '',
+    startLocation: rawStep.start_location,
+    endLocation: rawStep.end_location,
   }
 
   // If this step involves a bus or train, pull out the transit-specific info
