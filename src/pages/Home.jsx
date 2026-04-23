@@ -198,8 +198,20 @@ export default function Home() {
     try {
       const originParam = `${originStop.lat},${originStop.lng}`
       const destinationParam = `${destinationStop.lat},${destinationStop.lng}`
+      console.info('[route] requesting directions', {
+        from: { name: originStop.name, lat: originStop.lat, lng: originStop.lng },
+        to: { name: destinationStop.name, lat: destinationStop.lat, lng: destinationStop.lng },
+        sdkLoaded: Boolean(window.google?.maps?.DirectionsService),
+      })
+
       const results = await getTransitAndWalking(originParam, destinationParam)
       const prioritizedTransit = prioritizeUgaTransitRoutes(results.transit, busRoutes)
+
+      console.info('[route] directions result', {
+        transitCount: results.transit.length,
+        walkingCount: results.walking.length,
+        errors: results.errors,
+      })
 
       setTripResults({
         ...results,
@@ -207,7 +219,9 @@ export default function Home() {
       })
 
       if (!prioritizedTransit.length && !results.walking.length) {
-        setMsg(buildNoRouteMessage(results.errors))
+        const fallback = buildNoRouteMessage(results.errors)
+        console.warn('[route] no routes returned', { errors: results.errors, message: fallback })
+        setMsg(fallback)
       } else if (results.errors?.transit && results.walking.length) {
         setMsg(`Walking route found. ${describeTransitError(results.errors.transit)}`)
       } else if (results.errors?.walking && results.transit.length) {
@@ -218,6 +232,7 @@ export default function Home() {
         setMsg('')
       }
     } catch (error) {
+      console.error('[route] unhandled error', error)
       setTripResults({ transit: [], walking: [], errors: null })
       setMsg(error.message || 'Unable to find a route right now.')
     } finally {
