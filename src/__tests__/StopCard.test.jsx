@@ -57,4 +57,16 @@ describe('StopCard', () => {
     render(<StopCard stop={mockStop} />)
     expect(screen.getByText('📍')).toBeInTheDocument()
   })
+
+  it('handles keyboard selection', () => {
+    const onSelect = vi.fn()
+    render(<StopCard stop={mockStop} onSelect={onSelect} />)
+    
+    const card = screen.getByRole('button')
+    fireEvent.keyDown(card, { key: 'Enter' })
+    expect(onSelect).toHaveBeenCalledWith(mockStop)
+    
+    fireEvent.keyDown(card, { key: ' ' })
+    expect(onSelect).toHaveBeenCalledTimes(2)
+  })
 })

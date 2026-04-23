@@ -86,7 +86,9 @@ function formatStep(rawStep) {
       departureStop: details.departure_stop.name,
       arrivalStop: details.arrival_stop.name,
       departureTime: details.departure_time?.text,
+      departureTimeValue: details.departure_time?.value, // unix timestamp in seconds
       arrivalTime: details.arrival_time?.text,
+      arrivalTimeValue: details.arrival_time?.value,
       numStops: details.num_stops,
       agencyName: details.line.agencies?.[0]?.name,
     }

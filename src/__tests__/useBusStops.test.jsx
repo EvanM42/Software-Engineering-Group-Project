@@ -1,5 +1,13 @@
-import { describe, it, expect } from 'vitest'
-import { getNearbyStops } from '../hooks/useBusStops'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { renderHook, waitFor } from '@testing-library/react'
+import { useBusStops, getNearbyStops } from '../hooks/useBusStops'
+import { supabase } from '../lib/supabaseClient'
+
+vi.mock('../lib/supabaseClient', () => ({
+  supabase: {
+    from: vi.fn()
+  }
+}))
 
 const mockStops = [
   { id: '1', name: 'Stop A', lat: 33.950, lng: -83.376 },
@@ -10,7 +18,50 @@ const mockStops = [
   { id: '6', name: 'Stop F', lat: 33.970, lng: -83.400 },
 ]
 
-describe('getNearbyStops', () => {
+describe('useBusStops Hook', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('fetches stops on mount', async () => {
+    supabase.from.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data: mockStops, error: null })
+      })
+    })
+
+    const { result } = renderHook(() => useBusStops())
+    
+    expect(result.current.loading).toBe(true)
+    
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
+
+    expect(result.current.stops).toHaveLength(mockStops.length)
+    expect(result.current.stops[0].name).toBe('Stop A')
+  })
+
+  it('handles fetch errors', async () => {
+    supabase.from.mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        order: vi.fn().mockResolvedValue({ data: null, error: { message: 'DB Error' } })
+      })
+    })
+
+    const { result } = renderHook(() => useBusStops())
+    
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false)
+    })
+
+    expect(result.current.error).toBe('DB Error')
+  })
+})
+
+describe('getNearbyStops Utility', () => {
   it('returns the N nearest stops', () => {
     const result = getNearbyStops(mockStops, 33.950, -83.376, 3)
     expect(result).toHaveLength(3)

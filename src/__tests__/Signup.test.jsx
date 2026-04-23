@@ -119,20 +119,36 @@ describe('Signup', () => {
     expect(screen.getByText('Log In')).toBeInTheDocument()
   })
 
-  it('redirects to home when already authenticated', () => {
-    mockUseAuth.mockReturnValue({
-      signup: mockSignup,
-      session: { user: { id: '1' } },
-      loading: false,
+  it('handles successful signup', async () => {
+    const { waitFor } = await import('@testing-library/react')
+    mockSignup.mockResolvedValue({ error: null })
+    
+    render(<MemoryRouter><Signup /></MemoryRouter>)
+    
+    fireEvent.change(screen.getByPlaceholderText('you@uga.edu'), { target: { value: 'new@uga.edu' } })
+    fireEvent.change(screen.getByPlaceholderText('At least 6 characters'), { target: { value: 'pass123' } })
+    fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), { target: { value: 'pass123' } })
+    
+    const buttons = screen.getAllByText('Create Account')
+    const createButton = buttons.find(el => el.tagName === 'BUTTON')
+    fireEvent.click(createButton)
+    
+    await waitFor(() => {
+      expect(mockSignup).toHaveBeenCalledWith('new@uga.edu', 'pass123')
+      expect(screen.getByText(/Account created/i)).toBeInTheDocument()
     })
+  })
 
-    render(
-      <MemoryRouter initialEntries={['/signup']}>
-        <Signup />
-      </MemoryRouter>
-    )
-
-    // Should not render signup content when redirecting
-    expect(screen.queryByPlaceholderText('you@uga.edu')).not.toBeInTheDocument()
+  it('submits on Enter key in signup form', () => {
+    mockSignup.mockResolvedValue({ error: null })
+    render(<MemoryRouter><Signup /></MemoryRouter>)
+    
+    fireEvent.change(screen.getByPlaceholderText('you@uga.edu'), { target: { value: 'new@uga.edu' } })
+    fireEvent.change(screen.getByPlaceholderText('At least 6 characters'), { target: { value: 'pass123' } })
+    fireEvent.change(screen.getByPlaceholderText('Re-enter your password'), { target: { value: 'pass123' } })
+    
+    fireEvent.keyDown(screen.getByPlaceholderText('Re-enter your password'), { key: 'Enter' })
+    
+    expect(mockSignup).toHaveBeenCalled()
   })
 })

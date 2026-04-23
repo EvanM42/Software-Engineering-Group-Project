@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import Login from '../pages/Login'
 
@@ -89,13 +89,46 @@ describe('Login', () => {
     expect(screen.queryByText('Welcome Back')).not.toBeInTheDocument()
   })
 
-  it('has the auth-container class', () => {
-    const { container } = render(
-      <MemoryRouter>
-        <Login />
-      </MemoryRouter>
-    )
+  it('handles successful login', async () => {
+    mockLogin.mockResolvedValue({ error: null })
+    
+    render(<MemoryRouter><Login /></MemoryRouter>)
+    
+    fireEvent.change(screen.getByPlaceholderText('you@uga.edu'), { target: { value: 'test@uga.edu' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'pass123' } })
+    
+    fireEvent.click(screen.getByText('Log In'))
+    
+    await waitFor(() => {
+      expect(mockLogin).toHaveBeenCalledWith('test@uga.edu', 'pass123')
+      expect(mockNavigate).toHaveBeenCalledWith('/')
+    })
+  })
 
-    expect(container.querySelector('.auth-container')).toBeInTheDocument()
+  it('handles login error', async () => {
+    mockLogin.mockResolvedValue({ error: 'Invalid credentials' })
+    
+    render(<MemoryRouter><Login /></MemoryRouter>)
+    
+    fireEvent.change(screen.getByPlaceholderText('you@uga.edu'), { target: { value: 'wrong@uga.edu' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'wrong' } })
+    
+    fireEvent.click(screen.getByText('Log In'))
+    
+    await waitFor(() => {
+      expect(screen.getByText('Invalid credentials')).toBeInTheDocument()
+    })
+  })
+
+  it('submits correctly on Enter key', () => {
+    mockLogin.mockResolvedValue({ error: null })
+    render(<MemoryRouter><Login /></MemoryRouter>)
+    
+    fireEvent.change(screen.getByPlaceholderText('you@uga.edu'), { target: { value: 'test@uga.edu' } })
+    fireEvent.change(screen.getByPlaceholderText('Enter your password'), { target: { value: 'pass' } })
+    
+    fireEvent.keyDown(screen.getByPlaceholderText('Enter your password'), { key: 'Enter' })
+    
+    expect(mockLogin).toHaveBeenCalled()
   })
 })

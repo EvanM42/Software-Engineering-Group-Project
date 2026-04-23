@@ -95,31 +95,41 @@ describe('Home', () => {
     })
   })
 
-  it('renders the find view by default', () => {
+  it('renders the find view by default', async () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByText('Find a Route')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Find a Route')).toBeInTheDocument()
+    })
   })
 
-  it('renders the map', () => {
+  it('renders the map', async () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByTestId('bus-map')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByTestId('bus-map')).toBeInTheDocument()
+    })
   })
 
-  it('renders autocomplete inputs for origin and destination', () => {
+  it('renders autocomplete inputs for origin and destination', async () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByPlaceholderText('Search origin stop...')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Search destination stop...')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText('Search origin stop...')).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('Search destination stop...')).toBeInTheDocument()
+    })
   })
 
-  it('renders save route button', () => {
+  it('renders save route button', async () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByText('Find Route')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Find Route')).toBeInTheDocument()
+    })
   })
 
-  it('shows validation when saving with empty fields', () => {
+  it('shows validation when saving with empty fields', async () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
     fireEvent.click(screen.getByText('Find Route'))
-    expect(screen.getByText('Please select both stops.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Please select both stops.')).toBeInTheDocument()
+    })
   })
 
   it('switches to stops view', async () => {
@@ -138,14 +148,18 @@ describe('Home', () => {
     })
   })
 
-  it('has Stops, and Saved tabs', () => {
+  it('has Stops, and Saved tabs', async () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByText('Stops')).toBeInTheDocument()
-    expect(screen.getByText('Saved')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Stops')).toBeInTheDocument()
+      expect(screen.getByText('Saved')).toBeInTheDocument()
+    })
   })
 
-  it('has a logout button', () => {
+  it('has a logout button', async () => {
     render(<MemoryRouter><Home /></MemoryRouter>)
-    expect(screen.getByText('Logout')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Logout')).toBeInTheDocument()
+    })
   })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import RouteCard from '../components/RouteCard'
 
 describe('RouteCard', () => {
@@ -18,27 +18,69 @@ describe('RouteCard', () => {
 
   it('renders the arrow separator', () => {
     render(<RouteCard route={mockRoute} onDelete={vi.fn()} />)
-    expect(screen.getByText(/→/)).toBeInTheDocument()
+    expect(screen.getByText(/↓/)).toBeInTheDocument()
   })
 
   it('renders a delete button', () => {
     render(<RouteCard route={mockRoute} onDelete={vi.fn()} />)
-    expect(screen.getByText('Delete')).toBeInTheDocument()
+    expect(screen.getByTitle('Delete Route')).toBeInTheDocument()
   })
 
   it('calls onDelete with route id when delete is clicked', () => {
     const onDelete = vi.fn()
     render(<RouteCard route={mockRoute} onDelete={onDelete} />)
 
-    fireEvent.click(screen.getByText('Delete'))
+    fireEvent.click(screen.getByTitle('Delete Route'))
     expect(onDelete).toHaveBeenCalledWith('123')
   })
 
-  it('has card class on the container', () => {
-    const { container } = render(
-      <RouteCard route={mockRoute} onDelete={vi.fn()} />
+  it('fetches and shows trips when expanded', async () => {
+    const { getDirections } = await import('../services/directionsService')
+    vi.mock('../services/directionsService', () => ({
+      getDirections: vi.fn(),
+    }))
+
+    const mockTrips = [
+      {
+        duration: '10 mins',
+        steps: [{
+          travelMode: 'TRANSIT',
+          transit: { departureTime: '10:30 AM', arrivalTime: '10:40 AM', lineName: 'Orbit', numStops: 3 }
+        }]
+      }
+    ]
+    getDirections.mockResolvedValue(mockTrips)
+
+    render(
+      <RouteCard 
+        route={mockRoute} 
+        onDelete={vi.fn()} 
+        activeNotifications={{}}
+        notificationLeads={{}}
+      />
     )
 
-    expect(container.querySelector('.card')).toBeInTheDocument()
+    const toggleBtn = screen.getByText('View Trips')
+    fireEvent.click(toggleBtn)
+
+    expect(screen.getByText('Loading...')).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.getByText('10:30 AM')).toBeInTheDocument()
+      expect(screen.getByText('Orbit')).toBeInTheDocument()
+    })
+  })
+
+  it('shows error message if trip fetch fails', async () => {
+    const { getDirections } = await import('../services/directionsService')
+    getDirections.mockRejectedValue(new Error('Fetch failed'))
+
+    render(<RouteCard route={mockRoute} onDelete={vi.fn()} />)
+    
+    fireEvent.click(screen.getByText('View Trips'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Could not fetch latest times.')).toBeInTheDocument()
+    })
   })
 })

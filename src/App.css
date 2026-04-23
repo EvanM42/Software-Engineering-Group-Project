@@ -2305,3 +2305,424 @@ hr { border: none; border-top: 1px solid #ddd; }
     min-height: 100%;
   }
 }
+
+/* ========== NOTIFICATIONS ========== */
+.notification-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  margin-top: 10px;
+  animation: notificationSlideDown 0.3s ease-out;
+}
+
+@keyframes notificationSlideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h4 {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #475569;
+}
+
+.notification-toggle {
+  width: auto;
+  min-width: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  box-shadow: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.notification-toggle:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  transform: none;
+  box-shadow: none;
+}
+
+.notification-toggle.is-active {
+  background: #BA0C2F;
+  border-color: #BA0C2F;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(186, 12, 47, 0.2);
+}
+
+.notification-toggle.is-active:hover:not(:disabled) {
+  background: #950a25;
+}
+
+.notification-toggle__icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* wiggle animation for the bell when active */
+.notification-toggle.is-active .notification-toggle__icon {
+  animation: bellWiggle 2s infinite;
+}
+
+@keyframes bellWiggle {
+  0%, 100% { transform: rotate(0); }
+  10%, 30% { transform: rotate(15deg); }
+  20%, 40% { transform: rotate(-15deg); }
+  50% { transform: rotate(0); }
+}
+
+.notification-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.notification-select {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.notification-select:focus {
+  border-color: #BA0C2F;
+}
+
+.notification-hint {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* ========== SAVED ROUTE TRIPS (REDESIGNED) ========== */
+.route-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.route-card.is-expanded {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.route-card__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.route-card__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.route-card__title-group .card-title {
+  font-size: 1.1rem;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.route-card__arrow {
+  font-size: 14px;
+  color: #94a3b8;
+  margin-left: 2px;
+  font-weight: 800;
+}
+
+.route-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.trip-toggle-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  background: rgba(186, 12, 47, 0.08);
+  color: #BA0C2F;
+  border: 1px solid rgba(186, 12, 47, 0.1);
+  box-shadow: none;
+  transition: all 0.2s ease;
+}
+
+.trip-toggle-btn:hover {
+  background: #BA0C2F;
+  color: #fff;
+}
+
+.trip-toggle-btn.is-active {
+  background: #1e293b;
+  color: #fff;
+  border-color: #1e293b;
+}
+
+.delete-btn {
+  width: 32px;
+  height: 32px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+.route-card__trips {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #f1f5f9;
+  animation: notificationSlideDown 0.4s ease;
+}
+
+.trips-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.trips-header h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #64748b;
+}
+
+.mini-trip {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  transition: transform 0.2s ease;
+}
+
+.mini-trip:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+}
+
+.mini-trip__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.mini-trip__times {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.time-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.time-block strong {
+  font-size: 1.25rem;
+  color: #0f172a;
+}
+
+.time-separator {
+  margin-top: 12px;
+  font-size: 18px;
+  color: #cbd5e1;
+}
+
+.mini-trip__duration {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f766e;
+  background: #f0fdfa;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.mini-trip__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 14px;
+  border-top: 1px dashed #f1f5f9;
+}
+
+.mini-trip__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mini-trip__line-badge {
+  font-size: 13px;
+  font-weight: 800;
+  color: #BA0C2F;
+}
+
+.mini-trip__stops-count {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.notify-setup {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mini-trip__select {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  outline: none;
+}
+
+.mini-notify-btn {
+  padding: 8px 14px;
+  background: #1e293b;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.active-alert-pill {
+  background: #BA0C2F;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cancel-alert-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 4px;
+}
+
+.cancel-alert-btn:hover {
+  background: #fff;
+  color: #BA0C2F;
+}
+
+.wiggle {
+  animation: bellWiggle 2s infinite;
+  display: inline-block;
+}
+
+.location-link {
+  background: none;
+  border: none;
+  color: #BA0C2F;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: auto;
+  padding: 0;
+  box-shadow: none;
+}
+
+.location-link:hover {
+  color: #1e293b;
+  background: none;
+}
+
+.departure-countdown {
+  margin-left: 8px;
+  color: #0f766e;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.trip-card-total-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.trip-card-total-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  color: #94a3b8;
+  font-weight: 800;
+  margin-bottom: -2px;
+}
+
+.trip-card-subtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 12px;
+}

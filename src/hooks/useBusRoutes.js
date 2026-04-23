@@ -82,6 +82,7 @@ export function normalizeBusRoute(route, index = 0) {
     route.myid,
     route.group_id,
     route.id,
+    ...(Array.isArray(route.aliases) ? route.aliases : []),
   ]
     .filter(Boolean)
     .map((value) => String(value).trim())

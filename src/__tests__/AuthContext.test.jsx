@@ -63,13 +63,75 @@ describe('AuthContext', () => {
     consoleSpy.mockRestore()
   })
 
-  it('renders children while loading', () => {
+  it('renders children while loading', async () => {
+    const { supabase } = await import('../lib/supabaseClient')
+    supabase.auth.getSession.mockResolvedValue({ data: { session: null } })
+
     render(
       <AuthProvider>
         <div data-testid="child">Hello</div>
       </AuthProvider>
     )
 
-    expect(screen.getByTestId('child')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByTestId('child')).toBeInTheDocument()
+    })
+  })
+
+  it('calls login and handles success', async () => {
+    const { supabase } = await import('../lib/supabaseClient')
+    supabase.auth.signInWithPassword.mockResolvedValue({ error: null })
+
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>
+    )
+
+    const loginBtn = screen.getByText('Login')
+    loginBtn.click()
+
+    await waitFor(() => {
+      expect(supabase.auth.signInWithPassword).toHaveBeenCalledWith({
+        email: 'test@uga.edu',
+        password: 'password',
+      })
+    })
+  })
+
+  it('calls signup and handles error', async () => {
+    const { supabase } = await import('../lib/supabaseClient')
+    supabase.auth.signUp.mockResolvedValue({ error: { message: 'Signup failed' } })
+
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>
+    )
+
+    const signupBtn = screen.getByText('Signup')
+    signupBtn.click()
+
+    await waitFor(() => {
+      expect(supabase.auth.signUp).toHaveBeenCalled()
+    })
+  })
+
+  it('calls logout', async () => {
+    const { supabase } = await import('../lib/supabaseClient')
+    supabase.auth.signOut.mockResolvedValue({ error: null })
+
+    render(
+      <AuthProvider>
+        <TestConsumer />
+      </AuthProvider>
+    )
+
+    const logoutBtn = screen.getByText('Logout')
+    logoutBtn.click()
+
+    await waitFor(() => {
+      expect(supabase.auth.signOut).toHaveBeenCalled()
+    })
   })
 })

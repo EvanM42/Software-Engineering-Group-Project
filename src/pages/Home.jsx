@@ -6,6 +6,11 @@ import { useBusRoutes } from '../hooks/useBusRoutes'
 import { getTransitAndWalking } from '../services/directionsService'
 import { buildMapOverlays } from '../utils/mapRouteUtils'
 import { buildRouteStyleMap, getRouteBadgeStyle } from '../utils/routeStyles'
+import {
+  requestNotificationPermission,
+  scheduleNotification,
+  cancelNotification
+} from '../services/notificationService'
 import Navbar from '../components/Navbar'
 import RouteCard from '../components/RouteCard'
 import LogoutModal from '../components/LogoutModal'
@@ -30,13 +35,51 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [logoutLoading, setLogoutLoading] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [activeNotifications, setActiveNotifications] = useState({})
+  const [notificationLeads, setNotificationLeads] = useState({})
 
-  const [view, setView] = useState('find')
+  const [view, setView] = useState(() => localStorage.getItem('uga_transit_view') || 'find')
   const [searchQuery, setSearchQuery] = useState('')
 
   const [userLocation, setUserLocation] = useState(null)
   const [locationError, setLocationError] = useState(null)
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false)
   const [etaTick, setEtaTick] = useState(() => Date.now())
+
+  // --- PERSISTENCE ---
+  useEffect(() => {
+    localStorage.setItem('uga_transit_view', view)
+  }, [view])
+
+  useEffect(() => {
+    if (origin) localStorage.setItem('uga_origin_text', origin)
+    if (destination) localStorage.setItem('uga_dest_text', destination)
+  }, [origin, destination])
+
+  useEffect(() => {
+    if (selectedOrigin) localStorage.setItem('uga_selected_origin', JSON.stringify(selectedOrigin))
+    if (selectedDestination) localStorage.setItem('uga_selected_destination', JSON.stringify(selectedDestination))
+  }, [selectedOrigin, selectedDestination])
+
+  useEffect(() => {
+    if (tripResults.transit.length || tripResults.walking.length) {
+      localStorage.setItem('uga_trip_results', JSON.stringify(tripResults))
+    }
+  }, [tripResults])
+
+  // Load state on mount
+  useEffect(() => {
+    const savedOrigin = localStorage.getItem('uga_selected_origin')
+    const savedDest = localStorage.getItem('uga_selected_destination')
+    const savedResults = localStorage.getItem('uga_trip_results')
+    
+    if (savedOrigin) setSelectedOrigin(JSON.parse(savedOrigin))
+    if (savedDest) setSelectedDestination(JSON.parse(savedDest))
+    if (savedResults) setTripResults(JSON.parse(savedResults))
+    
+    setOrigin(localStorage.getItem('uga_origin_text') || '')
+    setDestination(localStorage.getItem('uga_dest_text') || '')
+  }, [])
 
   useEffect(() => {
     // capture the user's location for nearby stops and map focus
@@ -196,8 +239,14 @@ export default function Home() {
     setMsg('')
 
     try {
+      if (!originStop || !destinationStop) {
+        setMsg('Please select both origin and destination.')
+        return
+      }
+
       const originParam = `${originStop.lat},${originStop.lng}`
       const destinationParam = `${destinationStop.lat},${destinationStop.lng}`
+      
       const results = await getTransitAndWalking(originParam, destinationParam)
       const prioritizedTransit = prioritizeUgaTransitRoutes(results.transit, busRoutes)
 
@@ -217,9 +266,10 @@ export default function Home() {
       } else {
         setMsg('')
       }
-    } catch (error) {
+    } catch (err) {
+      console.error('Route search error:', err)
+      setMsg(err.message || 'Unable to find a route right now.')
       setTripResults({ transit: [], walking: [], errors: null })
-      setMsg(error.message || 'Unable to find a route right now.')
     } finally {
       setLoading(false)
     }
@@ -287,20 +337,148 @@ export default function Home() {
     setLogoutLoading(false)
   }
 
+  const handleToggleNotification = async (step, stepId) => {
+    const isAlreadyNotifying = activeNotifications[stepId]
+
+    if (isAlreadyNotifying) {
+      cancelNotification(stepId)
+      setActiveNotifications((prev) => {
+        const next = { ...prev }
+        delete next[stepId]
+        return next
+      })
+      return
+    }
+
+    const granted = await requestNotificationPermission()
+    if (!granted) {
+      setMsg('Please allow browser notifications to use this feature.')
+      return
+    }
+
+    const leadMinutes = notificationLeads[stepId] || 5
+    
+    let scheduledDate
+    if (step.transit.departureTimeValue) {
+      // Prioritize the raw timestamp from Google Maps if available
+      scheduledDate = new Date(step.transit.departureTimeValue * 1000)
+    } else {
+      // Fallback to parsing the display string (e.g. "10:15 PM")
+      scheduledDate = parseDisplayTime(step.transit.departureTime, etaTick)
+    }
+
+    if (!scheduledDate) {
+      setMsg('Cannot set alert: No scheduled departure time found.')
+      return
+    }
+
+    const triggerTimestamp = scheduledDate.getTime() - leadMinutes * 60000
+    const delayMs = triggerTimestamp - Date.now()
+
+    if (delayMs < 0) {
+      setMsg(`Too late! This bus departs in less than ${leadMinutes}m.`)
+      return
+    }
+
+    const notificationPayload = {
+      title: 'UGA Bus Alert',
+      body: `Your ${step.transit.lineName} bus departs ${step.transit.departureStop} in ${leadMinutes} minutes!`,
+      triggerTime: triggerTimestamp,
+      stepId
+    }
+
+    scheduleNotification(
+      stepId,
+      notificationPayload.title,
+      notificationPayload.body,
+      delayMs,
+      () => {
+        setActiveNotifications((prev) => {
+          const next = { ...prev }
+          delete next[stepId]
+          localStorage.setItem('uga_active_alerts', JSON.stringify(next))
+          return next
+        })
+      }
+    )
+
+    setActiveNotifications((prev) => {
+      const next = { ...prev, [stepId]: notificationPayload }
+      localStorage.setItem('uga_active_alerts', JSON.stringify(next))
+      return next
+    })
+    setMsg(`Alert set for ${leadMinutes}m before departure.`)
+  }
+
+  // Recover notifications on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('uga_active_alerts')
+    if (!saved) return
+    
+    const alerts = JSON.parse(saved)
+    const now = Date.now()
+    const active = {}
+
+    Object.keys(alerts).forEach(id => {
+      const alert = alerts[id]
+      const delay = alert.triggerTime - now
+      
+      if (delay > 0) {
+        active[id] = alert
+        scheduleNotification(id, alert.title, alert.body, delay, () => {
+          setActiveNotifications(prev => {
+            const next = { ...prev }
+            delete next[id]
+            localStorage.setItem('uga_active_alerts', JSON.stringify(next))
+            return next
+          })
+        })
+      }
+    })
+    
+    setActiveNotifications(active)
+  }, [])
+
+  const useMyLocation = () => {
+    if (!userLocation) {
+      setMsg('Current location not available.')
+      return
+    }
+    setOrigin('My Current Location')
+    setSelectedOrigin({
+      id: 'current-location',
+      name: 'My Current Location',
+      lat: userLocation.lat,
+      lng: userLocation.lng
+    })
+    setUseCurrentLocation(true)
+    setMsg('')
+  }
+
   function clearSelections() {
     setOrigin('')
     setDestination('')
     setSelectedOrigin(null)
     setSelectedDestination(null)
+    setUseCurrentLocation(false)
     setTripResults({ transit: [], walking: [], errors: null })
     setMsg('')
+    localStorage.removeItem('uga_origin_text')
+    localStorage.removeItem('uga_dest_text')
+    localStorage.removeItem('uga_selected_origin')
+    localStorage.removeItem('uga_selected_destination')
+    localStorage.removeItem('uga_trip_results')
   }
 
   function clearOrigin() {
     setOrigin('')
     setSelectedOrigin(null)
+    setUseCurrentLocation(false)
     setTripResults({ transit: [], walking: [], errors: null })
     setMsg('')
+    localStorage.removeItem('uga_origin_text')
+    localStorage.removeItem('uga_selected_origin')
+    localStorage.removeItem('uga_trip_results')
   }
 
   function clearDestination() {
@@ -308,6 +486,9 @@ export default function Home() {
     setSelectedDestination(null)
     setTripResults({ transit: [], walking: [], errors: null })
     setMsg('')
+    localStorage.removeItem('uga_dest_text')
+    localStorage.removeItem('uga_selected_destination')
+    localStorage.removeItem('uga_trip_results')
   }
 
   function handleStopClick(stop) {
@@ -450,6 +631,13 @@ export default function Home() {
                     <label className="input-label">
                       <span className="input-dot input-dot--origin" />
                       From
+                      <button 
+                        type="button" 
+                        className="location-link"
+                        onClick={useMyLocation}
+                      >
+                         Use my location
+                      </button>
                     </label>
                     <StopAutocomplete
                       id="origin-input"
@@ -681,6 +869,40 @@ export default function Home() {
                                     {step.transit.numStops} stop{step.transit.numStops === 1 ? '' : 's'}
                                     {step.transit.agencyName ? ` via ${step.transit.agencyName}` : ''}
                                   </p>
+
+                                  <div className="notification-settings">
+                                    <div className="notification-header">
+                                      <h4>Departure Alert</h4>
+                                      <button
+                                        type="button"
+                                        className={`notification-toggle ${activeNotifications[`transit-step-${stepIndex}`] ? 'is-active' : ''}`}
+                                        onClick={() => handleToggleNotification(step, `transit-step-${stepIndex}`)}
+                                      >
+                                        <span className="notification-toggle__icon" aria-hidden="true">
+                                          {activeNotifications[`transit-step-${stepIndex}`] ? '🔔' : '🔕'}
+                                        </span>
+                                        {activeNotifications[`transit-step-${stepIndex}`] ? 'Alert Active' : 'Notify Me'}
+                                      </button>
+                                    </div>
+                                    <div className="notification-controls">
+                                      <select
+                                        className="notification-select"
+                                        value={notificationLeads[`transit-step-${stepIndex}`] || 5}
+                                        onChange={(e) => setNotificationLeads(prev => ({
+                                          ...prev,
+                                          [`transit-step-${stepIndex}`]: Number(e.target.value)
+                                        }))}
+                                        disabled={activeNotifications[`transit-step-${stepIndex}`]}
+                                      >
+                                        <option value={5}>5 minutes before</option>
+                                        <option value={10}>10 minutes before</option>
+                                        <option value={15}>15 minutes before</option>
+                                      </select>
+                                    </div>
+                                    <p className="notification-hint">
+                                      We'll nudge you via browser notification so you don't miss your bus.
+                                    </p>
+                                  </div>
                                 </div>
                               ) : (
                                 <p>{step.distance}</p>
@@ -795,6 +1017,11 @@ export default function Home() {
                   route={route}
                   onDelete={deleteRoute}
                   onSelect={handleSavedRouteSelect}
+                  activeNotifications={activeNotifications}
+                  notificationLeads={notificationLeads}
+                  onToggleNotification={handleToggleNotification}
+                  onLeadChange={(id, lead) => setNotificationLeads(prev => ({ ...prev, [id]: lead }))}
+                  etaTick={etaTick}
                 />
               ))}
             </div>
@@ -885,9 +1112,12 @@ function formatRelativeMinutes(displayTime, nowValue = Date.now()) {
 function parseDisplayTime(displayTime, nowValue = Date.now()) {
   const normalized = String(displayTime || '')
     .trim()
-    .replace(/\s+/g, '')
+    .replace(/\s+/g, ' ') // Keep single space for better parsing if needed, but we'll strip it for the regex
     .toUpperCase()
-  const match = normalized.match(/^(\d{1,2}):(\d{2})(AM|PM)$/)
+  
+  // Extract just the time part if it contains extra info like "(28 min)"
+  const timeRegex = /(\d{1,2}):(\d{2})\s*(AM|PM)/
+  const match = normalized.match(timeRegex)
   if (!match) return null
 
   const [, rawHours, rawMinutes, meridiem] = match
