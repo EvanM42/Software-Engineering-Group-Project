@@ -207,9 +207,9 @@ export default function Home() {
       })
 
       if (!prioritizedTransit.length && !results.walking.length) {
-        setMsg('No Google Maps route options were returned for those stops.')
+        setMsg(buildNoRouteMessage(results.errors))
       } else if (results.errors?.transit && results.walking.length) {
-        setMsg('Walking route found. Google transit directions are unavailable right now.')
+        setMsg(`Walking route found. ${describeTransitError(results.errors.transit)}`)
       } else if (results.errors?.walking && results.transit.length) {
         setMsg('Transit route found. Walking fallback is unavailable right now.')
       } else if (prioritizedTransit.length) {
@@ -847,6 +847,32 @@ function getUgaTransitScore(route, busRoutes) {
     if (matchesKnownRoute) return score + 3
     return score
   }, 0)
+}
+
+function buildNoRouteMessage(errors) {
+  const transitStatus = errors?.transit?.status
+  const walkingStatus = errors?.walking?.status
+
+  if (transitStatus === 'ZERO_RESULTS' && walkingStatus === 'ZERO_RESULTS') {
+    return 'Google could not find any route between those stops right now. Transit may be outside service hours — try again during operating times.'
+  }
+  if (transitStatus === 'ZERO_RESULTS') {
+    return 'No transit route is available right now (likely outside UGA bus service hours).'
+  }
+  if (transitStatus === 'REQUEST_DENIED' || walkingStatus === 'REQUEST_DENIED') {
+    return 'Google rejected the directions request. Check that the Maps API key has Directions enabled.'
+  }
+  if (errors?.transit?.message || errors?.walking?.message) {
+    return `Google Maps error: ${errors?.transit?.message || errors?.walking?.message}`
+  }
+  return 'No Google Maps route options were returned for those stops.'
+}
+
+function describeTransitError(transitError) {
+  if (transitError?.status === 'ZERO_RESULTS') {
+    return 'No transit option right now — try again during UGA bus service hours.'
+  }
+  return 'Google transit directions are unavailable right now.'
 }
 
 function getDurationMinutes(durationText) {

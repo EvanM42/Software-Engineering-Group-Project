@@ -2,7 +2,7 @@ import config from '../config'
 
 // Asks Google for directions between two places.
 // In dev mode we go through the Vite proxy so the API key stays out of the browser network tab.
-export async function getDirections(origin, destination, mode = 'transit') {
+export async function getDirections(origin, destination, mode = 'transit', options = {}) {
   const params = new URLSearchParams({
     origin,
     destination,
@@ -11,18 +11,30 @@ export async function getDirections(origin, destination, mode = 'transit') {
     key: config.google.mapsApiKey,
   })
 
+  // Transit mode requires a departure_time. Without it Google can return ZERO_RESULTS
+  // simply because no buses are running at the implicit "now". Use the caller-provided
+  // time (Unix seconds) or fall back to the literal "now" keyword Google accepts.
+  if (mode === 'transit') {
+    const departureTime = options.departureTime ?? 'now'
+    params.set('departure_time', String(departureTime))
+  }
+
   const url = config.isDev
     ? `/api/directions?${params}`
     : `${config.google.directionsUrl}?${params}`
 
   const response = await fetch(url)
   if (!response.ok) {
-    throw new Error(`Google Directions returned ${response.status}`)
+    const error = new Error(`Google Directions returned ${response.status}`)
+    error.status = `HTTP_${response.status}`
+    throw error
   }
 
   const data = await response.json()
   if (data.status !== 'OK') {
-    throw new Error(data.error_message || `No routes found (${data.status})`)
+    const error = new Error(data.error_message || `No routes found (${data.status})`)
+    error.status = data.status
+    throw error
   }
 
   return data.routes.map(formatRoute)
@@ -30,9 +42,9 @@ export async function getDirections(origin, destination, mode = 'transit') {
 
 // Grabs both bus/transit and walking directions at the same time.
 // Returns whatever succeeded — if one mode fails, the other still shows up.
-export async function getTransitAndWalking(origin, destination) {
+export async function getTransitAndWalking(origin, destination, options = {}) {
   const [transitResult, walkingResult] = await Promise.allSettled([
-    getDirections(origin, destination, 'transit'),
+    getDirections(origin, destination, 'transit', options),
     getDirections(origin, destination, 'walking'),
   ])
 
@@ -40,9 +52,16 @@ export async function getTransitAndWalking(origin, destination) {
     transit: transitResult.status === 'fulfilled' ? transitResult.value : [],
     walking: walkingResult.status === 'fulfilled' ? walkingResult.value : [],
     errors: {
-      transit: transitResult.status === 'rejected' ? transitResult.reason.message : null,
-      walking: walkingResult.status === 'rejected' ? walkingResult.reason.message : null,
+      transit: transitResult.status === 'rejected' ? formatError(transitResult.reason) : null,
+      walking: walkingResult.status === 'rejected' ? formatError(walkingResult.reason) : null,
     },
+  }
+}
+
+function formatError(reason) {
+  return {
+    message: reason?.message || 'Unknown error',
+    status: reason?.status || null,
   }
 }
 
